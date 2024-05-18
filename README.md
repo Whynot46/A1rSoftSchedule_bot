@@ -1,6 +1,8 @@
 # A1rSoftSchedule_bot
 Telegram-бот A1rSoftSchedule_bot
 
+https://github.com/Whynot46/A1rSoftSchedule_bot/assets/83154713/74e9fc82-883c-497b-b4d0-a732ea6df999
+
 ## Содержание
 - [Технологии](#технологии)
 - [Функционал](#функционал)
