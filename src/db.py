@@ -23,10 +23,12 @@ def get_names_by_subject(subject):
 def get_data(event_name, data):
     conn = sqlite3.connect('./db/events.db')
     cursor = conn.cursor()
-    cursor.execute(f'SELECT {data} FROM events WHERE event_name =?', (event_name,))
+    cursor.execute(f'SELECT {data} FROM events WHERE event_name = ?', (event_name,))
     rows = cursor.fetchall()
     conn.close()
-    return rows[0][0]
+    try:
+        return rows[0][0]
+    except: return None
 
 
-# print(get_data("Мероприятие_1", "datetime"))
+# print(get_names_by_subject("Астраханская область"))

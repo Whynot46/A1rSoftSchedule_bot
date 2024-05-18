@@ -1,8 +1,10 @@
 import telebot
+from telebot.types import ReplyKeyboardRemove
 import os
 import src.keyboards as kb
 import src.db as db
 from sys import platform
+from random import randint
 
 
 try:
@@ -34,6 +36,7 @@ def start_message(message):
 def input_event_name(message):
     bot.send_message(message.chat.id, "Укажите название мероприятия", reply_markup = kb.cancel_keyboard)
     bot.register_next_step_handler(message, input_datetime)
+
 
 def input_datetime(message):
     if message.text == "Отмена":
@@ -180,13 +183,41 @@ def distrit_callback(call):
                           message_id=call.message.id,
                           text="Какой город/область вас интересует?")
     bot.edit_message_reply_markup(chat_id=call.message.chat.id, 
-                          message_id=call.message.id,
-                          reply_markup=kb.make_subject_keyboard(call.message.text))
+                                message_id=call.message.id,
+                                inline_message_id=call.message.id, 
+                                reply_markup=kb.get_district_inline_keyboard(call.data))
+
+    bot.send_message(chat_id=call.message.chat.id, 
+                                text="Выберите город/область из списка",
+                                reply_markup=kb.get_subject_keyboard(call.data))
+
     bot.register_next_step_handler(call.message, chouse_subject)
     
     
 def chouse_subject(message):
-    pass
+    events = db.get_names_by_subject(message.text)
+    if len(events)>0:
+        random_event_num = randint(0, len(events)-1)
+        current_event_name = str((events[random_event_num])[0])
+        current_event_datetime = db.get_data(current_event_name, "datetime")
+        current_event_address = db.get_data(current_event_name, "address")
+        current_location_info = db.get_data(current_event_name, "location_info")
+        current_game_type = db.get_data(current_event_name, "game_type")
+        current_event_info = db.get_data(current_event_name, "event_info")
+        current_group_link = db.get_data(current_event_name, "group_link")
+        bot.send_message(message.chat.id,
+                        f"⭐️ Название: {current_event_name}\n"
+                        f"📅 Дата: {current_event_datetime}\n"
+                        f"🗺️ Адрес: {current_event_address}\n"
+                        f"💬 Описание локации: {current_location_info}\n"
+                        f"🏹 Тип игры: {current_game_type}\n"
+                        f"🔥 О мероприятии: {current_event_info}\n"
+                        f"🔗 Ссылка: {current_group_link}",
+                        reply_markup=kb.main_keyboard)
+        
+    else: bot.send_message(message.chat.id, 
+                        f"Мы не нашли ни одного мероприятия в выбранной области 😢",
+                        reply_markup=kb.main_keyboard)
     
 
 if __name__ == "__main__": 

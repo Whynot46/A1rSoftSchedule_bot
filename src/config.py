@@ -160,3 +160,14 @@ def get_district_code(district_name):
         if district_name in district[0]:
             return district[1]
     return None
+
+
+def get_district_name(district_code):
+    for district in DISTRICT_NAMES:
+        if district_code == district[1]:
+            return district[0]
+    return None
+
+
+def get_subject_towns(district_code):
+    return SUBJECT_TOWNS[district_code]
