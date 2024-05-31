@@ -5,6 +5,7 @@ import src.keyboards as kb
 import src.db as db
 from sys import platform
 from random import randint
+from src.config import is_datetime_valid, is_text_valid
 
 
 try:
@@ -41,21 +42,25 @@ def input_event_name(message):
 def input_datetime(message):
     if message.text == "Отмена":
         cancel(message)
-    elif len(message.text) <= 1:
+    elif not is_text_valid(message.text):
         bot.send_message(message.chat.id, "Укажите корректное название мероприятия", reply_markup = kb.cancel_keyboard)
         bot.register_next_step_handler(message, input_datetime)
     else:
         kb.config.EVENT_TEMP["event_name"] = message.text
-        bot.send_message(message.chat.id, "Укажите дату и время мероприятия", reply_markup = kb.cancel_keyboard)
+        bot.send_message(message.chat.id, "Укажите дату и время мероприятия\n\n"
+                        "Необходимый формат даты и времени: \n"
+                        "ДЕНЬ-МЕСЯЦ_ГОД ЧАСЫ:МИНУТЫ\n\n"
+                        "Пример: 12-01-2024 12:00"
+                        , reply_markup = kb.cancel_keyboard)
         bot.register_next_step_handler(message, input_district)
 
         
 def input_district(message):
     if message.text == "Отмена":
         cancel(message)
-    elif len(message.text) <= 7:
-        bot.send_message(message.chat.id, "Укажите корректную дату и время мероприятия", reply_markup = kb.cancel_keyboard)
-        bot.register_next_step_handler(message, input_district)
+    if not is_datetime_valid(message.text):
+            bot.send_message(message.chat.id, "Укажите корректную дату и время мероприятия", reply_markup = kb.cancel_keyboard)
+            bot.register_next_step_handler(message, input_district)
     else:
         kb.config.EVENT_TEMP["datetime"] = message.text
         bot.send_message(message.chat.id, "Укажите Ваш федеральный округ", reply_markup = kb.district_keyboard)
@@ -89,7 +94,7 @@ def input_address(message):
 def input_location_info(message):
     if message.text == "Отмена":
         cancel(message)
-    elif len(message.text) <= 1:
+    elif not is_text_valid(message.text):
         bot.send_message(message.chat.id, "Укажите корректный адрес проведения мероприятия", reply_markup = kb.cancel_keyboard)
         bot.register_next_step_handler(message, input_location_info)
     else:
@@ -101,12 +106,12 @@ def input_location_info(message):
 def input_game_type(message):
     if message.text == "Отмена":
         cancel(message)
-    elif len(message.text) <= 1:
+    elif not is_text_valid(message.text):
         bot.send_message(message.chat.id, "Укажите корректное краткое описание локации", reply_markup = kb.cancel_keyboard)
         bot.register_next_step_handler(message, input_game_type)
-    elif len(message.text) > 200:
-        bot.send_message(message.chat.id, "Краткое описание не должно превышать 200 символов\nУкажите корректное описание локации", reply_markup = kb.cancel_keyboard)
-        bot.register_next_step_handler(message, input_group_link)
+        if len(message.text) > 200:
+            bot.send_message(message.chat.id, "Краткое описание не должно превышать 200 символов\nУкажите корректное описание локации", reply_markup = kb.cancel_keyboard)
+            bot.register_next_step_handler(message, input_group_link)
     else:
         kb.config.EVENT_TEMP["location_info"] = message.text
         bot.send_message(message.chat.id, "Укажите тип игры", reply_markup = kb.cancel_keyboard)
@@ -116,8 +121,8 @@ def input_game_type(message):
 def input_event_info(message):
     if message.text == "Отмена":
         cancel(message)
-    elif len(message.text) <= 1:
-        bot.send_message(message.chat.id, "Укажите тип игры", reply_markup = kb.cancel_keyboard)
+    elif not is_text_valid(message.text):
+        bot.send_message(message.chat.id, "Укажите корректный тип игры", reply_markup = kb.cancel_keyboard)
         bot.register_next_step_handler(message, input_event_info)
     else:
         kb.config.EVENT_TEMP["game_type"] = message.text
@@ -128,12 +133,12 @@ def input_event_info(message):
 def input_group_link(message):
     if message.text == "Отмена":
         cancel(message)
-    elif len(message.text) <= 1:
-        bot.send_message(message.chat.id, "Укажите краткую информацию о событии", reply_markup = kb.cancel_keyboard)
+    elif not is_text_valid(message.text):
+        bot.send_message(message.chat.id, "Укажите корректную информацию о событии", reply_markup = kb.cancel_keyboard)
         bot.register_next_step_handler(message, input_group_link)
-    elif len(message.text) > 200:
-        bot.send_message(message.chat.id, "Краткая информация не должна превышать 200 символов\nУкажите корректную информацию о событии", reply_markup = kb.cancel_keyboard)
-        bot.register_next_step_handler(message, input_group_link)
+        if len(message.text) > 200:
+            bot.send_message(message.chat.id, "Краткая информация не должна превышать 200 символов\nУкажите корректную информацию о событии", reply_markup = kb.cancel_keyboard)
+            bot.register_next_step_handler(message, input_group_link)
     else:
         kb.config.EVENT_TEMP["event_info"] = message.text
         bot.send_message(message.chat.id, "Укажите ссылку на группу мероприятия", reply_markup = kb.cancel_keyboard)
@@ -169,12 +174,8 @@ def cancel(message):
 
 @bot.message_handler(func=lambda message: message.text == "Просмотр события")
 def show_event(message):
+    db.delete_old_events()
     bot.send_message(message.chat.id, "Какой федеральный округ вас интересует?", reply_markup=kb.district_inline_keyboard)
-
-
-@bot.message_handler(content_types=["text"])
-def send_text(message):
-    pass
 
 
 @bot.callback_query_handler(func = lambda call : True)
