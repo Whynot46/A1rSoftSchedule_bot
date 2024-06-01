@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 
-API_TOKEN = "5672523634:AAEl2LI8W3Py2jp1mrnhZ66SZwTe5y7wcD8"
+API_TOKEN = "7182903437:AAGCxp9U3sCbt9c95co4ug_98Kh0Si2lglQ"
 
 
 EVENT_TEMP = {
